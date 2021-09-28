@@ -46,5 +46,6 @@ Route::middleware('auth:admin-api')->group(function(){
         Route::get('viewallwallets',[UserController::class,'viewallwallets']);
         Route::get('allusers',[UserController::class,'allusers']);
         Route::get('viewbetcategories',[UserController::class,'viewbetcategories']);
+        Route::get('viewtimers',[UserController::class,'viewtimers']);
     });
 });
