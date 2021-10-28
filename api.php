@@ -27,7 +27,6 @@ Route::post('/superadmin_login',[UserController::class,'superadmin_login']);
 Route::get('liverate',[UserController::class,'liverate']);
 Route::get('getcryptomarkets',[UserController::class,'getcryptomarkets']);
 Route::get('javascript',[UserController::class,'javascript']);
-Route::get('test',[UserController::class,'test']);
 Route::middleware('auth:api')->group(function(){
     Route::prefix('user')->group(function(){
         Route::get('view_wallet',[UserController::class,'view_wallet']);

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTimersTable extends Migration
+class CreateSuperAdminsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,14 @@ class CreateTimersTable extends Migration
      */
     public function up()
     {
-        Schema::create('timers', function (Blueprint $table) {
+        Schema::create('super_admins', function (Blueprint $table) {
             $table->id();
-            $table->string('timer');
-            $table->float('payout',10,2);
+            $table->string('email');
+            $table->string('password');
             $table->timestamps();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      *
@@ -28,6 +28,6 @@ class CreateTimersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('timers');
+        Schema::dropIfExists('super_admins');
     }
 }

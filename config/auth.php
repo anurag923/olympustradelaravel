@@ -51,6 +51,12 @@ return [
             'provider' => 'admins',
             'hash' => false,
         ],
+        
+        'super-admin-api' => [
+            'driver' => 'passport',
+            'provider' => 'superadmins',
+            'hash' => false,
+        ],
     ],
 
     /*
@@ -81,6 +87,10 @@ return [
             'model' => App\Models\Admin::class,
         ],
 
+        'superadmins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\SuperAdmin::class,
+        ],
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',

@@ -16,4 +16,8 @@ class Timer extends Model
     public function userfinalbet(){
         return $this->belongsTo(Useractivebet::class);
     }
+
+    public function markets(){
+        return $this->belongsTo(market::class,'market_id');
+    }
 }
