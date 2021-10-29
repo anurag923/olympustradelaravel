@@ -14,6 +14,9 @@ use App\Models\Betcategoryprice;
 use App\Models\Timer;
 use App\Models\Userfinalwallet;
 use App\Models\market;
+use App\Models\Master;
+use App\Models\Mastertransactionwallet;
+use App\Models\Masterfinalwallet;
 use App\Repository\UserRepositoryInterface;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Http;
@@ -118,8 +121,8 @@ class UserController extends Controller
         }
         
     }
-    public function superadmin_register(Request $request){
-        $count = SuperAdmin::where('email',$request->email)->count();
+    public function master_register(Request $request){
+        $count = Master::where('email',$request->email)->count();
         switch($count){
             case 0:
                 $validatedData = $request->validate([
@@ -128,7 +131,7 @@ class UserController extends Controller
                 ]);
                 switch($validatedData){
                     case true:
-                        $insert = new SuperAdmin();
+                        $insert = new Master();
                         $insert->email = $request->email;
                         $insert->password = $request->password;
                         $res = $insert->save();
@@ -163,7 +166,7 @@ class UserController extends Controller
         switch($find){
             case 1:
                 $user = Admin::where('email', $email)->first();
-                $token =  $user->createToken('super_admin_token')->accessToken;
+                $token =  $user->createToken('adminuser_token')->accessToken;
                 return response()->json(['response' => 'You have Logged in Successfully', 'token' => $token], 200);
                 break;
             default:
@@ -172,16 +175,16 @@ class UserController extends Controller
         }
     }
 
-    public function superadmin_login(Request $request)
+    public function master_login(Request $request)
     {
         $email = $request->email;
         $password = $request->password;
 
-        $find = SuperAdmin::where('email', $email)->where('password', $password)->count();
+        $find = Master::where('email', $email)->where('password', $password)->count();
         switch($find){
             case 1:
-                $user = SuperAdmin::where('email', $email)->first();
-                $token =  $user->createToken('super_admin_token')->accessToken;
+                $user = Master::where('email', $email)->first();
+                $token =  $user->createToken('adminuser_token')->accessToken;
                 return response()->json(['response' => 'You have Logged in Successfully', 'token' => $token], 200);
                 break;
             default:
@@ -190,31 +193,31 @@ class UserController extends Controller
         }
     }
     public function addmoneytowallet(Request $request){
-        $count_user = User::where('id',$request->user_id)->count();
+        $count_user = Master::where('id',$request->master_id)->count();
         switch($count_user){
             case 1:
-                $data = new Usertransactionwallet();
-                $data->user_id = $request->user_id;
+                $data = new Mastertransactionwallet();
+                $data->master_id = $request->master_id;
                 $data->amount = $request->amount;
-                $data->added_by = auth()->user()->id;
+                // $data->added_by = auth()->user()->id;
                 $res = $data->save();
                 
                 switch($res){
                     case true:
-                    $count = Userfinalwallet::where('user_id',$request->user_id)->count();
+                    $count = Masterfinalwallet::where('master_id',$request->master_id)->count();
                     switch($count){
                         case 0:
-                            $insertdata = new Userfinalwallet();
-                            $insertdata->user_id = $request->user_id;
+                            $insertdata = new Masterfinalwallet();
+                            $insertdata->master_id = $request->master_id;
                             $insertdata->amount = $request->amount;
                             $insertdata->save();
                             break;
                         default:
-                        $amount = Userfinalwallet::where('user_id',$request->user_id)->get()[0]->amount;
-                        Userfinalwallet::where('user_id',$request->user_id)->update(['amount'=>$amount+$request->amount]);
+                        $amount = Masterfinalwallet::where('master_id',$request->master_id)->get()[0]->amount;
+                        Masterfinalwallet::where('master_id',$request->master_id)->update(['amount'=>$amount+$request->amount]);
                         break;
                     }
-                    return response()->json(['response'=>'you have successfully added the amount to user wallet'],200);
+                    return response()->json(['response'=>'you have successfully added the amount to master wallet'],200);
                     break;
                     default:
                     return response()->json(['message'=>'the requested amount could not be added'],400);
@@ -237,9 +240,9 @@ class UserController extends Controller
     }
 
     public function view_final_wallet(){
-        $user = Userfinalwallet::where('user_id',auth()->user()->id)->with(['user'=>function($q){
-            $q->distinct()->select(['id','name','email']);
-        }])->distinct()->select(['user_id','amount'])->get();
+        $user = Masterfinalwallet::where('master_id',auth()->user()->id)->with(['master'=>function($q){
+            $q->distinct()->select(['id','email']);
+        }])->distinct()->select(['master_id','amount'])->get();
         return response()->json(['response'=>$user],200);
     }
     public function placebet(Request $request){

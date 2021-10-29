@@ -52,9 +52,9 @@ return [
             'hash' => false,
         ],
         
-        'super-admin-api' => [
+        'master-api' => [
             'driver' => 'passport',
-            'provider' => 'superadmins',
+            'provider' => 'masters',
             'hash' => false,
         ],
     ],
@@ -87,9 +87,9 @@ return [
             'model' => App\Models\Admin::class,
         ],
 
-        'superadmins' => [
+        'masters' => [
             'driver' => 'eloquent',
-            'model' => App\Models\SuperAdmin::class,
+            'model' => App\Models\Master::class,
         ],
         // 'users' => [
         //     'driver' => 'database',

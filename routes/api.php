@@ -22,8 +22,8 @@ Route::post('/user_register',[UserController::class,'register']);
 Route::post('/user_login',[UserController::class,'login']);
 Route::post('/admin_register',[UserController::class,'admin_register']);
 Route::post('/admin_login',[UserController::class,'admin_login']);
-Route::post('/superadmin_register',[UserController::class,'superadmin_register']);
-Route::post('/superadmin_login',[UserController::class,'superadmin_login']);
+Route::post('/master_register',[UserController::class,'master_register']);
+Route::post('/master_login',[UserController::class,'master_login']);
 Route::get('liverate',[UserController::class,'liverate']);
 Route::get('getcryptomarkets',[UserController::class,'getcryptomarkets']);
 Route::get('javascript',[UserController::class,'javascript']);
@@ -53,19 +53,18 @@ Route::middleware('auth:admin-api')->group(function(){
         Route::get('allusers',[UserController::class,'allusers']);
         Route::get('viewbetcategories',[UserController::class,'viewbetcategories']);
         Route::get('viewtimers/{marketid}',[UserController::class,'viewtimers_admin']);
-        // Route::get('markets_crypto',[UserController::class,'markets_crypto']);
-        // Route::post('markets_stocks',[UserController::class,'markets_stocks']);
-        // Route::get('selectedmarkets',[UserController::class,'selectedmarkets']);
-        // Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
-        // Route::get('searchmarket',[UserController::class,'searchmarket']);
-    });
-});
-
-Route::middleware('auth:super-admin-api')->group(function(){
-    Route::prefix('superadmin')->group(function(){
         Route::get('markets_crypto',[UserController::class,'markets_crypto']);
         Route::post('markets_stocks',[UserController::class,'markets_stocks']);
         Route::get('selectedmarkets',[UserController::class,'selectedmarkets']);
+        Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
+        Route::get('searchmarket',[UserController::class,'searchmarket']);
+    });
+});
+
+Route::middleware('auth:master-api')->group(function(){
+    Route::prefix('master')->group(function(){
+        Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
+        Route::get('viewfinalwallet',[UserController::class,'view_final_wallet']);
         Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
         Route::get('searchmarket',[UserController::class,'searchmarket']);
     });
