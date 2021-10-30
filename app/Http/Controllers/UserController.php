@@ -17,6 +17,7 @@ use App\Models\market;
 use App\Models\Master;
 use App\Models\Mastertransactionwallet;
 use App\Models\Masterfinalwallet;
+use App\Models\masterfinalbet;
 use App\Repository\UserRepositoryInterface;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Http;
@@ -245,6 +246,7 @@ class UserController extends Controller
         }])->distinct()->select(['master_id','amount'])->get();
         return response()->json(['response'=>$user],200);
     }
+    
     public function placebet(Request $request){
         $walletdata_count = Userfinalwallet::where('user_id',auth()->user()->id)->count();
         switch($walletdata_count){
@@ -312,6 +314,72 @@ class UserController extends Controller
         }
     }
 
+    public function master_placebet(Request $request){
+        $walletdata_count = Masterfinalwallet::where('master_id',auth()->user()->id)->count();
+        switch($walletdata_count){
+            case 1;
+            $amount = Masterfinalwallet::where('master_id',auth()->user()->id)->get()[0]->amount;
+            switch($amount){
+                case($amount<$request->betamount);
+                return response()->json(['message'=>'insufficient funds'],400);
+                break;
+
+                case($amount>=$request->betamount);
+                $data = new masterfinalbet();
+                $data->master_id = auth()->user()->id;
+                $data->market = $request->market;
+                $data->betamount = $request->betamount;
+                $data->start_date = date("Y-m-d");
+                $data->start_time = date("H:i:s");
+                $data->timer_id = $request->duration;
+                $data->exposure = -($request->betamount);
+
+                $res = $data->save();
+                switch($res){
+                    case true:
+                        $amount = Masterfinalwallet::where('master_id',auth()->user()->id)->get()[0]->amount;
+                        Masterfinalwallet::where('master_id',auth()->user()->id)->update(['amount'=>$amount-($request->betamount)]);
+                        $val = masterfinalbet::orderBy('id','desc')->first();
+                        return response()->json(['response'=>$val],200);
+                        break;
+                        
+                    default:
+                        return response()->json(['message'=>'something went wrong'],400);
+                }
+                break;
+
+                default;
+                return "default";
+            }
+            break;
+
+            default:
+            return response()->json(['message'=>'your wallet has not been initiated yet'],400);
+        }
+
+    }
+
+    public function master_finalbet(Request $request){
+        $id = $request->bet_id;
+        $profitloss = $request->profitloss;
+        $res = masterfinalbet::where('id',$id)->update(['end_date'=>date("Y-m-d"),'end_time'=>date("H:i:s"),'profitloss'=>$profitloss,'exposure'=>0.00]);
+        switch($res){
+            case true:
+                $amount = Masterfinalwallet::where('master_id',auth()->user()->id)->get()[0]->amount; 
+                switch($profitloss){
+                    case($profitloss>0):
+                        Masterfinalwallet::where('master_id',auth()->user()->id)->update(['amount'=>$amount+$request->betamount+$request->profitloss]);
+                        break;
+                    default:
+                        return response()->json(['response'=>'your bet has been completed successfully'],200);
+                        break;
+                }
+            return response()->json(['response'=>'your bet has been completed successfully'],200);
+            break;
+            default:
+            return response()->json(['message'=>'something went wrong'],400);  
+        }
+    }
     public function betcategory(Request $request){
         $count = Betcategory::where('category_name',$request->category)->count();
         if($count==1){

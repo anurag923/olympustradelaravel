@@ -67,5 +67,7 @@ Route::middleware('auth:master-api')->group(function(){
         Route::get('viewfinalwallet',[UserController::class,'view_final_wallet']);
         Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
         Route::get('searchmarket',[UserController::class,'searchmarket']);
+        Route::post('placebet',[UserController::class,'master_placebet']);
+        Route::post('finalbet',[UserController::class,'master_finalbet']);
     });
 });
