@@ -18,6 +18,10 @@ use App\Models\Master;
 use App\Models\Mastertransactionwallet;
 use App\Models\Masterfinalwallet;
 use App\Models\masterfinalbet;
+use App\Models\MasterUsertransactionwallet;
+use App\Models\Masteruserfinalwallet;
+use App\Models\MasterMarket;
+use App\Models\Mastertimer;
 use App\Repository\UserRepositoryInterface;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Http;
@@ -429,9 +433,6 @@ class UserController extends Controller
 
     public function addtimer(Request $request,$id){
         $data = $request->all();
-        //$count = Timer::where('timer',$id)->count();
-        // switch($count){
-            // case 0:
                 for($i=0;$i<count($data);$i++){
                     $count = Timer::where('market_id',$id)->where('timer',$data[$i]['timer'])->count();
                     if($count==0){
@@ -452,10 +453,7 @@ class UserController extends Controller
                         default:
                             return response()->json(['message'=>'something went wrong'],400);
                     }
-            // break;
-            // default:
-            //     return response()->json(['message'=>'this data is already present'],400);
-        // }
+
     }
     
     public function viewallfinalbets(){
@@ -569,41 +567,7 @@ class UserController extends Controller
         return $val_crypto;
         $val_stocks = $response_stocks->json();
         $data_stocks = $val_stocks['results'];
-        // for($i=0;$i<count($data_crypto);$i++){
-        //         $count_crypto = market::where('market',$data_crypto[$i]['base_currency_symbol']."-".$data_crypto[$i]['currency_symbol'])->count();
-        //         if($count_crypto==0){
-        //             $insert = new market();
-        //             $insert->market = $data_crypto[$i]['base_currency_symbol']."-".$data_crypto[$i]['currency_symbol'];
-        //             $insert->type = $data_crypto[$i]['market'];
-        //             $res = $insert->save();
-        //             if($res)
-        //                 {
-        //                     echo "success";
-        //                 }
-        //             else
-        //                 {
-        //                     echo "failure";
-        //                 }
-        //         }
-        // }
-    //     for($i=0;$i<count($data_stocks);$i++){
-    //         $count_stocks = market::where('market',$data_stocks[$i]['ticker'])->count();
-    //         if($count_stocks==0){
-    //             $insert = new market();
-    //             $insert->market = $data_stocks[$i]['ticker'];
-    //             $insert->type = $data_stocks[$i]['market'];
-    //             $res = $insert->save();
-    //             if($res)
-    //                 {
-    //                     echo "success";
-    //                 }
-    //             else
-    //                 {
-    //                     echo "failure";
-    //                 }
-    //         }
-    // }
-        // return $val['results'];
+        
     }
 
     public function markets_stocks(Request $request){
@@ -666,5 +630,165 @@ class UserController extends Controller
     public function test(){
         return "hello";
     }
+
+    public function master_addtouserwallet(){
+        $count_user = Master::where('id',auth()->user()->id)->count();
+        switch($count_user){
+            case 1:
+                $data = new MasterUsertransactionwallet();
+                $data->master_id = auth()->user()->id;
+                $data->user_id = $request->user_id;
+                $data->amount = $request->amount;
+                // $data->added_by = auth()->user()->id;
+                $res = $data->save();
+                
+                switch($res){
+                    case true:
+                    $count = Masteruserfinalwallet::where('master_id',auth()->user()->id)->count();
+                    switch($count){
+                        case 0:
+                            $insertdata = new Masteruserfinalwallet();
+                            $insertdata->master_id = auth()->user()->id;
+                            $insertdata->user_id = $request->user_id;
+                            $insertdata->amount = $request->amount;
+                            $insertdata->save();
+                            break;
+                        default:
+                        $amount = Masteruserfinalwallet::where('master_id',auth()->user()->id)->get()[0]->amount;
+                        Masteruserfinalwallet::where('master_id',$request->master_id)->update(['amount'=>$amount+$request->amount]);
+                        break;
+                    }
+                    return response()->json(['response'=>'you have successfully added the amount to master wallet'],200);
+                    break;
+                    default:
+                    return response()->json(['message'=>'the requested amount could not be added'],400);
+                    break;
+                }
+                break;
+                default:
+                    return response()->json(['message'=>'no such user exists'],400);
+                break;
+        }
+        
+    }
+
+    public function getmarkets(Request $request)
+    {
+        $data = market::where('type',$request->type)->with(['payouts'=>function($q){
+            $q->distinct()->select(['id','market_id','timer','payout']);
+        }])->distinct()->select(['id','market','type','abbv'])->get();
+        return response()->json(['response'=>$data],200);
+    }
     
+    public function addmarket(Request $request){
+        $data = $request->all();
+        $count = count($data);
+        for($i=0;$i<$count;$i++){
+            $addmarket = new MasterMarket();
+            $addmarket->master_id = auth()->user()->id;
+            $addmarket->market_id = $data[$i]['market_id'];
+            $res = $addmarket->save();
+        }
+
+        if($res){
+            return response()->json(['response'=>'you have successfully added the selected markets']);
+        }
+    }
+
+    public function master_selectedmarkets(Request $request){
+        $type = $request->type;
+        $val = [];
+        $data = MasterMarket::where('master_id',auth()->user()->id)->with(['master'=>function($q){
+            $q->distinct()->select(['id','email']);
+        }])->with(['market'=>function($q)use($type){
+            $q->where('type',$type)->distinct()->select(['id','market','type','abbv']);
+        }])->distinct()->select(['id','master_id','market_id'])->get();
+        for($i=0;$i<count($data);$i++){
+            if($data[$i]->market!=null){
+                array_push($val,$data[$i]);
+            }
+        }
+        return response()->json(['response'=>$val],200);
+    }
+
+    public function setpayout(Request $request,$id)
+    {
+        $data = $request->all();
+        return $data;
+                for($i=0;$i<count($data);$i++){
+                    $count = Mastertimer::where('mastermarket_id',$id)->where('timer',$data[$i]['timer'])->count();
+                    if($count==0){
+                        $timer = new Mastertimer();
+                        $timer->master_id = auth()->user()->id;
+                        $timer->mastermarket_id = $id;
+                        $timer->timer = $data[$i]['timer'];
+                        $timer->payout = $data[$i]['payout'];
+                        $res = $timer->save();
+                    }
+                    else{
+                        $res = false;
+                    }
+                }
+                switch($res){
+                        case true:
+                            return response()->json(['response'=>'data is stored successfully'],200);
+                            break;
+                        default:
+                            return response()->json(['message'=>'something went wrong'],400);
+                    }
+    }
+    
+    public function timers($id){
+        $data = Timer::where('market_id',$id)->distinct()->select(['id','timer'])->get();
+        return response()->json(['response'=>$data],200);
+    }
+
+    public function singlepayout_master(Request $request)
+    {
+        $marketid = $request->marketid;
+        $timer = $request->timer;
+        $newpayout = $request->newpayout;
+        $masterid = auth()->user()->id;
+        $status = $request->status;
+        $data = Timer::where('market_id',$marketid)->where('timer',$timer)->distinct()->select(['id','timer','payout'])->get();
+        if($newpayout<=$data[0]->payout){
+            $count = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->where('timer',$timer)->count();
+            if($count==0){
+                $masterpayout = new Mastertimer;
+                $masterpayout->mastermarket_id = $request->marketid;
+                $masterpayout->master_id = $masterid;
+                $masterpayout->timer = $timer;
+                $masterpayout->payout = $newpayout;
+                $masterpayout->status = $status;
+                $res = $masterpayout->save();
+                if($res){
+                    return response()->json(['response'=>'success'],200);
+                }
+                else{
+                    return response()->json(['error'=>'something went wrong'],400);
+                }
+            }
+            else{
+                $res = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->where('timer',$timer)->update(['payout'=>$newpayout,'status'=>$status]);
+                if($res){
+                    return response()->json(['response'=>'success'],200);
+                }
+                else{
+                    return response()->json(['error'=>'something went wrong'],400);
+                }
+            }
+        }
+        else{
+            return response()->json(['error'=>'the new payout cannot exceed the current payout'],400);
+        }
+        //return response()->json(['response'=>$data],200);
+    }
+
+    public function viewtimers_master(Request $request){
+        $masterid = auth()->user()->id;
+        $marketid = $request->marketid;
+
+        $data = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->where('status',1)->with('mastermarket.market')->get();
+        return response()->json(['response'=>$data],200);
+    }
 }

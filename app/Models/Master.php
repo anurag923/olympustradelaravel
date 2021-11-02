@@ -14,4 +14,12 @@ class Master extends Authenticatable
     public function master_finalwallet(){
         return $this->hasOne(Masterfinalwallet::class);
     }
+
+    public function master_market(){
+        return $this->hasMany(MasterMarket::class);
+    }
+
+    public function mastertimer(){
+        return $this->hasOne(Mastertimer::class);
+    }
 }

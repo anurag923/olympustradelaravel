@@ -5,19 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MasterMarket extends Model
+class Mastertimer extends Model
 {
     use HasFactory;
-
-    public function market(){
-        return $this->belongsTo(market::class,'id');
+    
+    public function mastermarket(){
+        return $this->belongsTo(MasterMarket::class);
     }
 
     public function master(){
         return $this->belongsTo(Master::class);
-    }
-
-    public function mastertimer(){
-        return $this->hasMany(Mastertimer::class);
     }
 }
