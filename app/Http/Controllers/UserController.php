@@ -333,6 +333,7 @@ class UserController extends Controller
                 $data->master_id = auth()->user()->id;
                 $data->market = $request->market;
                 $data->betamount = $request->betamount;
+                $data->uid = $request->uid;
                 $data->start_date = date("Y-m-d");
                 $data->start_time = date("H:i:s");
                 $data->timer_id = $request->duration;
@@ -441,6 +442,9 @@ class UserController extends Controller
                         $timer->payout = $data[$i]['payout'];
                         $timer->market_id = $id;
                         $res = $timer->save();
+                        if($res){
+                            market::where('id',$id)->update(['payoutset'=>1]);
+                        }
                     }
                     else{
                         $res = false;
@@ -517,11 +521,17 @@ class UserController extends Controller
         // }])->distinct()->select(['id','market_id','timer','payout'])->get();
         return response()->json(['response'=>$data],200);
     }
+    // public function singlepayout(Request $request){
+    //     $masterid = auth()->user()->id;
+    //     $marketid = $request->marketid;
+    //     $timer = $request->timer;
+    //     $data = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->where('timer',$timer)->get();
+    //     return response()->json(['response'=>$data],200);
+    // }
     public function singlepayout($id){
-        $data = Timer::where('id',$id)->distinct()->select(['id','payout','timer'])->get();
+        $data = Timer::where('timer',$id)->distinct()->select(['id','payout','timer'])->get();
         return response()->json(['response'=>$data],200);
     }
-
     public static function liverate(){
         $current_date = date("Y-m-d");
         $response = Http::get('https://api.polygon.io/v1/open-close/crypto/BTC/USD/'.$current_date.'?adjusted=true&apiKey=6sEFcNe2upitHW5lt9dp7EfkIuxoR58k');
@@ -581,6 +591,21 @@ class UserController extends Controller
                 $save->type = $data[$i]['type'];
                 $save->abbv = $data[$i]['abbv'];
                 $res = $save->save();
+                if($res){
+                    $val = market::all();
+                    {
+                        for($k=0;$k<5;$k++){
+                            $time = $k+1;
+                            $timer = new Timer();
+                            $timer->market_id = $val[$i]->id;
+                            $timer->timer =(string)$time;// (string)$time;
+                            $timer->payout = 1.75;
+                            $res_timer = $timer->save();
+                        }
+                        
+                        // $res_timer = $timer->save();
+                    }
+                }
             }
             else{
                 $res = false;
@@ -606,7 +631,7 @@ class UserController extends Controller
     public function getmarketbytype(Request $request){
         $data = market::where('type',$request->type)->with(['payouts'=>function($q){
             $q->distinct()->select(['id','market_id','timer','payout']);
-        }])->distinct()->select(['id','market','type','abbv'])->get();
+        }])->distinct()->select(['id','market','type','abbv'])->where('status',1)->get();
         return response()->json(['response'=>$data],200);
     }
 
@@ -788,7 +813,63 @@ class UserController extends Controller
         $masterid = auth()->user()->id;
         $marketid = $request->marketid;
 
-        $data = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->where('status',1)->with('mastermarket.market')->get();
+        $data = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->with(['mastermarket.market'=>function($q){
+            $q->distinct()->select(['id','market','type','abbv']);
+        }])
+        ->distinct()->select(['id','mastermarket_id','master_id','timer','payout','status'])->get();
+        return response()->json(['response'=>$data],200);
+    }
+    public function viewtimers_master_iframe(Request $request){
+        $masterid = auth()->user()->id;
+        $marketid = $request->marketid;
+
+        $data = Mastertimer::where('master_id',$masterid)->where('mastermarket_id',$marketid)->where('status',1)->with(['mastermarket.market'=>function($q){
+            $q->distinct()->select(['id','market','type','abbv']);
+        }])
+        ->distinct()->select(['id','mastermarket_id','master_id','timer','payout','status'])->get();
+        return response()->json(['response'=>$data],200);
+    }
+    public function updatestatus(Request $request){
+        $id = $request->id;
+        $status = $request->status;
+        $update = Mastertimer::where('id',$id)->update(['status'=>$status]);
+
+        if($update){
+            return response()->json(['response'=>'data updated successfully'],200);
+        }
+        else{
+            return response()->json(['error'=>'something went wrong'],400);
+        }
+    }
+
+    public function checkmaxpayout(Request $request){
+        $marketid = $request->marketid;
+        $timer = $request->timer;
+        $newpayout = $request->newpayout;
+        $masterid = auth()->user()->id;
+        $status = $request->status;
+        $data = Timer::where('market_id',$marketid)->where('timer',$timer)->distinct()->select(['id','timer','payout'])->get();
+        if($newpayout>$data[0]->payout){
+            return response()->json(['error'=>'payout is exceeding the max value'],400);
+        }
+        else{
+            return response()->json(['response'=>'ok to proceed'],200);
+        }
+    }
+
+    public function userbethistory(Request $request){
+        $uid = $request->uid;
+        $data = masterfinalbet::where('uid',$uid)->get();
+        return response()->json(['response'=>$data],200);
+    }
+
+    public function masterbethistory(){
+        $data = masterfinalbet::where('master_id',auth()->user()->id)->get();
+        return response()->json(['response'=>$data],200);
+    }
+
+    public function adminbethistory(){
+        $data = masterfinalbet::with('master')->with('mastertimer.mastermarket')->get();
         return response()->json(['response'=>$data],200);
     }
 }

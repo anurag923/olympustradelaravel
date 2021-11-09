@@ -16,6 +16,7 @@ class CreateMasterfinalbetsTable extends Migration
         Schema::create('masterfinalbets', function (Blueprint $table) {
             $table->id();
             $table->BigInteger('master_id')->unsigned();
+            $table->string('uid');
             $table->string('market');
             $table->float('betamount',10,2);
             $table->string('start_date');

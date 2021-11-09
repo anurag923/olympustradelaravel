@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class masterfinalbet extends Model
 {
     use HasFactory;
+    public function master(){
+        return $this->belongsTo(Master::class);
+    }
+    public function mastertimer(){
+        return $this->belongsTo(Mastertimer::class);
+    }
 }

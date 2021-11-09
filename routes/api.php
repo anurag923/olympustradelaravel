@@ -27,6 +27,7 @@ Route::post('/master_login',[UserController::class,'master_login']);
 Route::get('liverate',[UserController::class,'liverate']);
 Route::get('getcryptomarkets',[UserController::class,'getcryptomarkets']);
 Route::get('javascript',[UserController::class,'javascript']);
+Route::get('user/bethistory',[UserController::class,'userbethistory']);
 Route::get('test',[UserController::class,'test']);
 Route::middleware('auth:api')->group(function(){
     Route::prefix('user')->group(function(){
@@ -39,6 +40,7 @@ Route::middleware('auth:api')->group(function(){
         Route::get('viewtimers/{marketid}',[UserController::class,'viewtimers']);
         Route::get('singlepayout/{timer}',[UserController::class,'singlepayout']);
         Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
+        // Route::get('bethistory',[UserController::class,'userbethistory']);
     });
 });
 Route::middleware('auth:admin-api')->group(function(){
@@ -58,6 +60,7 @@ Route::middleware('auth:admin-api')->group(function(){
         Route::get('selectedmarkets',[UserController::class,'selectedmarkets']);
         Route::get('getmarketbytype',[UserController::class,'getmarketbytype']);
         Route::get('searchmarket',[UserController::class,'searchmarket']);
+        Route::get('bethistory',[UserController::class,'adminbethistory']);
     });
 });
 
@@ -77,5 +80,10 @@ Route::middleware('auth:master-api')->group(function(){
         Route::get('timers/{marketid}',[UserController::class,'timers']);
         Route::post('singlepayout',[UserController::class,'singlepayout_master']);
         Route::get('viewtimers',[UserController::class,'viewtimers_master']);
+        Route::get('viewtimers_iframe',[UserController::class,'viewtimers_master_iframe']);
+        Route::post('updatestatus',[UserController::class,'updatestatus']);
+        Route::post('checkmaxpayout',[UserController::class,'checkmaxpayout']);
+        //Route::get('singlepayout',[UserController::class,'singlepayout']);
+        Route::get('bethistory',[UserController::class,'masterbethistory']);
     });
 });

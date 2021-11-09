@@ -19,6 +19,8 @@ class CreateMastertimersTable extends Migration
             $table->BigInteger('master_id')->unsigned();
             $table->string('timer');
             $table->float('payout',10,2);
+            $table->Integer('status')->default(1);
+            $table->Integer('payoutset')->default(0);
             $table->foreign('mastermarket_id')->references('id')->on('master_markets')->onDelete('cascade');
             $table->foreign('master_id')->references('id')->on('masters')->onDelete('cascade');
             $table->timestamps();

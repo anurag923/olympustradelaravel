@@ -22,4 +22,8 @@ class Master extends Authenticatable
     public function mastertimer(){
         return $this->hasOne(Mastertimer::class);
     }
+
+    public function masterfinalbet(){
+        return $this->hasMany(masterfinalbet::class);
+    }
 }

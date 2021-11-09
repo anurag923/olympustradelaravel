@@ -10,7 +10,7 @@ class MasterMarket extends Model
     use HasFactory;
 
     public function market(){
-        return $this->belongsTo(market::class,'id');
+        return $this->belongsTo(market::class);
     }
 
     public function master(){
@@ -18,6 +18,6 @@ class MasterMarket extends Model
     }
 
     public function mastertimer(){
-        return $this->hasMany(Mastertimer::class);
+        return $this->hasMany(Mastertimer::class,'mastermarket_id');
     }
 }
